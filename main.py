@@ -95,7 +95,6 @@ headers = {
     'x-rapidapi-key': "your-rapid-api-key"
     }
 
-# To add custom help command
 client.remove_command('help')
 
 def queryToUrlStr(query):
@@ -117,7 +116,6 @@ def sendTime(timeStr):
     timeStr = date + " | " + time
     return timeStr
 
-# Fetching and sending covid data for India
 async def sendIndianCovidData(ctx):
     try:
         connectionCovid.request("GET", "/v4/data.json")
@@ -161,7 +159,6 @@ async def sendIndianCovidData(ctx):
     await ctx.send(embed = embed)
     return
 
-# Fetching and sending covid data for Indian states
 async def sendStateCovidData(ctx, code):
     try:
         connectionCovid.request("GET", "/v4/data.json")

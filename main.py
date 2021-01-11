@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import urllib3, json, random, requests
+import urllib3, json, random, requests, html
 import http.client
 
 
@@ -90,10 +90,12 @@ codeDict = {
 connectionDef = http.client.HTTPSConnection("rapidapi.p.rapidapi.com")
 connectionCovid = http.client.HTTPSConnection("api.covid19india.org")
 chuckURL = "https://api.chucknorris.io/jokes"
+insultURL = "https://evilinsult.com/generate_insult.php?lang=en&type=json"
+
 
 headers = {
     'x-rapidapi-host': "mashape-community-urban-dictionary.p.rapidapi.com",
-    'x-rapidapi-key': "your-rapid-api-key"
+    'x-rapidapi-key': "yo-key"
     }
 
 client.remove_command('help')
@@ -234,7 +236,7 @@ async def sendStateCovidData(ctx, code):
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    statustxt = "Poopie v2.2 | .help"
+    statustxt = "Poopie v2.3.69420 | .help"
     activity = discord.Game(name=statustxt)
     await client.change_presence(status=discord.Status.online, activity=activity)
 
@@ -251,14 +253,21 @@ async def help(ctx, *query):
         embed.add_field(name = "ping", value = "Returns pong.", inline = True)
         embed.add_field(name = "covid", value = "Returns COVID-19 Data for India or states.", inline = True)
         embed.add_field(name = "chucknorris", value = "Returns random Chuck Norris fact.", inline=True)
+        embed.add_field(name = "insult", value = "Sends a random insult, use wisely.", inline=True)
         embed.set_footer(text = f".help [command] for more info on a command | {client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.send(embed = embed)
+    elif query == 'insult':
+        await ctx.message.add_reaction('✅')
+        embed=discord.Embed(color = 0xffff00,title = f"insult", description = "`Aliases : roast`")
+        embed.add_field(name = "insult", value = "Sends a random insult, bitch.", inline = True)
+        embed.set_footer(text=f"{client.user.name}", icon_url=client.user.avatar_url)
         await ctx.send(embed = embed)
     elif query == 'avatar':
         await ctx.message.add_reaction('✅')
         embed=discord.Embed(color = 0xffff00,title = f"avatar", description = "`Aliases : av, a`")
         embed.add_field(name = "avatar", value = "Returns your avatar. 👀", inline = True)
         embed.add_field(name = "avatar [user]", value = "Returns the avatar of the 'user' you mention. 👀", inline = True)
-        embed.set_footer(text=f"This command may not work at times, will fix once we find the fix | {client.user.name}", icon_url=client.user.avatar_url)
+        embed.set_footer(text=f"This command may return errors due to some dumb thing | {client.user.name}", icon_url=client.user.avatar_url)
         await ctx.send(embed = embed)
     elif query == 'ping':
         await ctx.message.add_reaction('🏓')
@@ -288,6 +297,36 @@ async def help(ctx, *query):
     else: 
         await ctx.message.add_reaction('❎')
         await ctx.send("I can only help with things that I can do, for other things, help yourself 🙃")
+
+
+# Fun auto responses
+async def on_message(message):
+    if message.author == client.user:
+        return
+    if message.content.lower().find('who ') != -1 and message.content.find('?') != -1:
+        await message.channel.send('ur mom')
+        return
+    if message.content.lower().find('turd') != -1:
+        await message.channel.send('is best')
+        return
+    return
+
+client.add_listener(on_message, 'on_message')
+
+
+# Insult command
+@client.command(aliases = ['roast'], pass_context = True)
+async def insult(ctx):
+    try:
+        response = requests.request("GET", insultURL)
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The god damn API failed me!')
+        return
+
+    await ctx.message.add_reaction('✅')
+    data = response.json()
+    await ctx.send(html.unescape(data['insult']))
 
 
 # Random ping command
@@ -348,22 +387,26 @@ async def define(ctx, *Query):
 
 # Avatar Command
 @client.command(aliases = ['av', 'a'], pass_context = True)
-async def avatar(ctx, username=None):
-    if(username == None):
+async def avatar(ctx, *Query):
+    username = queryToStr(Query)
+    if(username == ''):
         await ctx.message.add_reaction('🤦‍♂️')
         embed = discord.Embed(title="🤦‍♂️",description=f"Uh, okay, look at yourself, you narcissistic human.", colour=discord.Colour(0xffff00))
         embed.set_image(url=ctx.message.author.avatar_url)
     else:
         try:
-            mentionedUser = client.get_user(int(str(username)[3:-1]))
+            mentionedUser = client.get_user(int(username[3:-1]))
         except:
             await ctx.message.add_reaction('❎')
             await ctx.send("Beep boop, user not found or you made a dumb mistake. Try again, boop beep.")
             return
-        await ctx.message.add_reaction('👀')
-        embed = discord.Embed(title="👀",description=f"Here is {mentionedUser.mention}'s avatar, ya damn stalker", colour=discord.Colour(0xffff00))
-        embed.set_image(url = mentionedUser.avatar_url)
-        
+        try:
+            await ctx.message.add_reaction('👀')
+            embed = discord.Embed(title="👀",description=f"Here is {mentionedUser.mention}'s avatar, ya damn stalker", colour=discord.Colour(0xffff00))
+            embed.set_image(url = mentionedUser.avatar_url)
+        except:
+            await ctx.message.add_reaction('🤬')
+            embed = discord.Embed(title="🤬",description=f"Dumb fookin error occurred!", colour=discord.Colour(0xffff00))
     embed.set_footer(text=f"{client.user.name} - By agummybear#8008", icon_url=client.user.avatar_url)
     await ctx.send(embed = embed)
 
@@ -423,4 +466,5 @@ async def chucknorris(ctx, *Query):
             await ctx.message.add_reaction('⁉')
             await ctx.send("I literally have a command to check the available categories, still you send dumb shit to me!")
 
-client.run('your-discord-bot-token')
+
+client.run('bot-key')

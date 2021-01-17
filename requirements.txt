@@ -2,3 +2,4 @@ discord
 urllib3
 http.client
 requests
+geopy

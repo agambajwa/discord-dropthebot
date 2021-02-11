@@ -1,14 +1,13 @@
 import discord
 from discord.ext import commands
-import urllib3, json, random, requests, html
+import json, random, requests, html
 import http.client
 from geopy.geocoders import Nominatim
-geolocator = Nominatim(user_agent="bot")
 
+geolocator = Nominatim(user_agent="bot")
 client = discord.Client()
 client = commands.Bot(command_prefix='.')
-htt = urllib3.PoolManager()
-owner = client.get_user(int("375638836245561344"))
+
 stateDict = {
         'AN': "Andaman and Nicobar Islands",
         'AP': "Andhra Pradesh",
@@ -88,32 +87,18 @@ codeDict = {
         'beng' : 'WB'
     }
 
-connectionDef = http.client.HTTPSConnection("rapidapi.p.rapidapi.com")
+defineURL = "https://mashape-community-urban-dictionary.p.rapidapi.com/define"
 connectionCovid = http.client.HTTPSConnection("api.covid19india.org")
 chuckURL = "https://api.chucknorris.io/jokes"
 insultURL = "https://evilinsult.com/generate_insult.php?lang=en&type=json"
 oWeatherURL = "https://api.openweathermap.org/data/2.5/onecall"
 
-
-headers = {
+defineHeaders = {
     'x-rapidapi-host': "mashape-community-urban-dictionary.p.rapidapi.com",
     'x-rapidapi-key': "yo-key"
     }
 
 client.remove_command('help')
-
-def queryToUrlStr(query):
-    string = ""
-    for e in query:
-        string = string + e + "%20"
-    string = string[:-3]
-    return string
-
-def queryToStr(query):
-    string = ""
-    for e in query:
-        string = string + " " + e
-    return string.lower().strip()
 
 def sendTime(timeStr):
     date = timeStr.split("T")[0]
@@ -135,23 +120,26 @@ async def sendIndianCovidData(ctx):
         await ctx.message.add_reaction('😭')
         await ctx.send("Some unknown error occurred, try again.")
         return 
-    
-    await ctx.message.add_reaction('✅')
 
     # Frustrating checks
-    if 'confirmed' in data['TT']['delta']:
-        deltaConf = "(+" + str(data['TT']['delta']['confirmed']) + ")"
+    if 'delta' in data['TT']:
+        if 'confirmed' in data['TT']['delta']:
+            deltaConf = "(+" + str(data['TT']['delta']['confirmed']) + ")"
+        else:
+            deltaConf = "(+0)"
+        
+        if 'deceased' in data['TT']['delta']:
+            deltaDec = "(+" + str(data['TT']['delta']['deceased']) + ")"
+        else: 
+            deltaDec = "(+0)"
+        
+        if 'recovered' in data['TT']['delta']:
+            deltaRec = "(+" + str(data['TT']['delta']['recovered']) + ")"
+        else:
+            deltaRec = "(+0)"
     else:
         deltaConf = "(+0)"
-    
-    if 'deceased' in data['TT']['delta']:
-        deltaDec = "(+" + str(data['TT']['delta']['deceased']) + ")"
-    else: 
         deltaDec = "(+0)"
-    
-    if 'recovered' in data['TT']['delta']:
-        deltaRec = "(+" + str(data['TT']['delta']['recovered']) + ")"
-    else:
         deltaRec = "(+0)"
 
     embed = discord.Embed(title = f"**COVID-19 Data for India**", description = f"Updated on {sendTime(str(data['TT']['meta']['last_updated']))}", color = 0xffff00)
@@ -161,6 +149,7 @@ async def sendIndianCovidData(ctx):
     embed.add_field(name = "Tested", value = str(data['TT']['total']['tested']) + " - _As on " + str(data['TT']['meta']['tested']['last_updated']) + "_", inline = False)
 
     embed.set_footer(text=f"Data by api.covid19india.org - DropTheBot")
+    await ctx.message.add_reaction('✅')
     await ctx.send(embed = embed)
     return
 
@@ -235,89 +224,166 @@ async def sendStateCovidData(ctx, code):
     embed.set_footer(text=f"Data by api.covid19india.org - DropTheBot")
     await ctx.send(embed = embed)
 
+
 @client.event
 async def on_ready():
-    print('We have logged in as {0.user}'.format(client))
-    statustxt = "Poopie v2.5 | .help"
+    print('Logged in as {0.user}'.format(client))
+    statustxt = "susu karlo v2.7.69"
     activity = discord.Game(name=statustxt)
     await client.change_presence(status=discord.Status.online, activity=activity)
 
+
 # Help Command
 @client.command()
-async def help(ctx, *query):
-    query = queryToStr(query)
-    if query == '':
-        await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00, title = f"Yello! I am DropTheBot 🤗", description = "`Bot Prefix : .`")
+async def help(ctx, *, query):
+    query = str(query).lower()
+    if query == 'animals' or query == 'animal':
+        embed=discord.Embed(color = 0xffff00,title = f"Animals", description = "")
         embed.set_thumbnail(url = client.user.avatar_url)
-        embed.add_field(name = "avatar <user>", value = "Returns the avatar of the 'user' you mention or your own, for... whatever reasons. 👀", inline = True)
-        embed.add_field(name = "define [word]", value = "Returns the Urban Dictionary definiton.", inline = True)
-        embed.add_field(name = "ping", value = "Returns pong.", inline = True)
-        embed.add_field(name = "covid", value = "Returns COVID-19 Data for India or states.", inline = True)
-        embed.add_field(name = "chucknorris", value = "Returns random Chuck Norris fact.", inline=True)
-        embed.add_field(name = "insult", value = "Sends a random insult, use wisely.", inline=True)
-        embed.add_field(name = "weather [place]", value = "Returns weather info.", inline=True)
-        embed.set_footer(text = f".help [command] for more info on a command | {client.user.name}", icon_url = client.user.avatar_url)
-        await ctx.send(embed = embed)
-    elif query == 'insult':
+        embed.add_field(name = "bird/birb", value = "Returns a picture of a birb! 🐤")
+        embed.add_field(name = "bunny", value = "Returns a GIF of a bunny! 🐇")
+        embed.add_field(name = "cat/pussy/meow", value = "Returns a picture of a cat! 🐈")
+        embed.add_field(name = "dog/doggo/woof", value = "Returns a picture of a dog! 🐈")
+        embed.add_field(name = "duck/quack", value = "Returns a picture of a duck! 🦆")
+        embed.add_field(name = "fox", value = "Returns a picture of a fox! 🦊")
+        embed.add_field(name = "owl", value = "Returns a picture of an owl! 🦉")
+        embed.add_field(name = "lizard", value = "Returns a picture of a lizard! 🦎")
+        embed.add_field(name = "shibe", value = "Returns a picture of a shibe! 🐕")
+        embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
         await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"insult", description = "`Aliases : roast`")
-        embed.add_field(name = "insult", value = "Sends a random insult, bitch.", inline = True)
-        embed.set_footer(text=f"{client.user.name}", icon_url=client.user.avatar_url)
         await ctx.send(embed = embed)
-    elif query == 'avatar':
-        await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"avatar", description = "`Aliases : av, a`")
+    elif query == 'avatar' or query == 'av':
+        embed=discord.Embed(color = 0xffff00,title = f"Avatar", description = "`Aliases : av, a`")
+        embed.set_thumbnail(url = client.user.avatar_url)
         embed.add_field(name = "avatar", value = "Returns your avatar. 👀", inline = True)
         embed.add_field(name = "avatar [user]", value = "Returns the avatar of the 'user' you mention. 👀", inline = True)
         embed.set_footer(text=f"{client.user.name}", icon_url=client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
         await ctx.send(embed = embed)
     elif query == 'ping':
         await ctx.message.add_reaction('🏓')
         await ctx.send("https://tenor.com/view/cats-ping-pong-gif-8942945")
     elif query == 'covid':
-        await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"covid", description = "")
+        embed=discord.Embed(color = 0xffff00,title = f"Indian COVID Data", description = "")
+        embed.set_thumbnail(url = client.user.avatar_url)
         embed.add_field(name = "covid", value = "Returns COVID-19 Data for India.", inline = True)
         embed.add_field(name = "covid [state]", value = "Returns COVID-19 Data for the 'state' (or UT) you mention.", inline = True)
         embed.set_footer(text=f"{client.user.name}", icon_url=client.user.avatar_url)
-        await ctx.send(embed = embed)
-    elif query == 'define':
         await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"define", description = "`Aliases : def, df, ud, urban`")
-        embed.add_field(name = "define [word]", value = "Returns the Urban Dictionary definiton of the 'word' you mentioned.", inline = True)
-        embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
         await ctx.send(embed = embed)
-    elif query == 'chucknorris':
-        await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"chucknorris", description = "`Aliases : norris, cn, chuck`")
+    elif query == 'chucknorris' or query == 'cn':
+        embed=discord.Embed(color = 0xffff00,title = f"Chuck Norris Facts!", description = "`Aliases : norris, cn, chuck`")
+        embed.set_thumbnail(url = client.user.avatar_url)
         embed.add_field(name = "chucknorris", value = "Returns random Chuck Norris fact.", inline = True)
         embed.add_field(name = "chucknorris categories", value = "Returns available categories.", inline = True)
         embed.add_field(name = "chucknorris [category]", value = "Returns random Chuck Norris fact for the 'category' you mentioned.", inline = True)
         embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
+    elif query == 'define' or query == 'df':
+        embed=discord.Embed(color = 0xffff00,title = f"Urban Dictionary Definitions", description = "`Aliases : def, df, ud, urban`")
+        embed.set_thumbnail(url = client.user.avatar_url)
+        embed.add_field(name = "define [word]", value = "Returns the Urban Dictionary definiton of the 'word' you mentioned.", inline = True)
+        embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
+    elif query == 'fun':
+        embed=discord.Embed(color = 0xffff00,title = f"Fun commands", description = "Useless bunch of shit.")
+        embed.set_thumbnail(url = client.user.avatar_url)
+        embed.add_field(name = "chucknorris", value = "Returns random Chuck Norris fact. `.help chucknorris` for more", inline = True)
+        embed.add_field(name = "insult", value = "Sends a random insult, bitch. `.help insult` for more", inline = True)
+        embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
+    elif query == 'insult' or query == 'roast':
+        embed=discord.Embed(color = 0xffff00,title = f"Insult.", description = "`Aliases : roast`")
+        embed.set_thumbnail(url = client.user.avatar_url)
+        embed.add_field(name = "insult", value = "Sends a random insult, bitch.", inline = True)
+        embed.set_footer(text=f"{client.user.name}", icon_url=client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
         await ctx.send(embed = embed)
     elif query == 'weather':
-        await ctx.message.add_reaction('✅')
-        embed=discord.Embed(color = 0xffff00,title = f"weather", description = "`Aliases : w, mausam`")
+        embed=discord.Embed(color = 0xffff00,title = f"Weather", description = "`Aliases : w, mausam`")
+        embed.set_thumbnail(url = client.user.avatar_url)
         embed.add_field(name = "weather [place]", value = "Returns weather info for the 'place' you mention.", inline = True)
         embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
         await ctx.send(embed = embed)
+    elif query == 'yoda' or query == 'yodish':
+        embed=discord.Embed(color = 0xffff00,title = f"Yodish Translator", description = "`Aliases : yodish`")
+        embed.set_thumbnail(url = client.user.avatar_url)
+        embed.add_field(name = "yoda [text]", value = "Returns Yodish translation of the 'text' you mention. Translations may be gibberish or not be any different than what you sent at times.", inline=True)
+        embed.set_footer(text = f"{client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
+    elif query == 'invite':
+        await ctx.message.add_reaction('❎')
+        await ctx.send("No.")
     else: 
         await ctx.message.add_reaction('❎')
-        await ctx.send("I can only help with things that I can do, for other things, help yourself 🙃")
+        await ctx.send("I don't know man, I am lost with that one too.")
+
+@help.error
+async def help_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed=discord.Embed(color = 0xffff00, title = f"Yello! I am DropTheBot 🤗", description = "`Bot Prefix : .`")
+        embed.set_thumbnail(url = client.user.avatar_url)
+        embed.add_field(name = "Animals", value = "To get pictures of animals, `.help animals` for more.", inline=True)
+        embed.add_field(name = "Avatar", value = "View the avatar of users or your own, for... whatever reasons. 👀", inline = True)
+        embed.add_field(name = "COVID", value = "COVID-19 Data for India or Indian states.", inline = True)
+        embed.add_field(name = "Fun", value = "Some random useless fun commands 🤷‍♂️", inline=True)
+        embed.add_field(name = "UD Definition", value = "Get the Urban Dictionary definiton of a word. `.help define` for more info.", inline = True)
+        embed.add_field(name = "Ping", value = "Returns pong.", inline = True)
+        embed.add_field(name = "Weather", value = "Get weather info for a place.", inline=True)
+        embed.add_field(name = "Yodish", value = "Returns Yodish translation of the 'text'.", inline=True)
+        embed.add_field(name = "Invite", value = "My invite link if you wish to add me 👉👈", inline=True)
+        embed.set_footer(text = f".help [command/category] for more info on a command/category | {client.user.name}", icon_url = client.user.avatar_url)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
 
 
 # Fun auto responses
 async def on_message(message):
     if message.author == client.user:
         return
-    if message.content.lower().find('who') != -1 and message.content.endswith('?'):
+    if message.content.lower().find('who is') != -1 and message.content.endswith('?'):
         await message.channel.send('ur mom')
+        return
+    if message.content.lower().find('why') != -1 and message.content.endswith('?'):
+        await message.channel.send('ask ur mom')
+        return
+    if message.content.lower() == 'twss':
+        await message.channel.send('https://media.discordapp.net/attachments/737504783937830927/808990223966928906/unknown.png')
+        return
+    if message.content.lower() == 'toyst':
+        await message.channel.send('https://tenor.com/view/brooklyn99-sex-tape-title-gif-16147025')
+        return
+    if message.content.lower() == 'mcph':
+        await message.channel.send('https://tenor.com/view/arey-maa-chudi-padi-hai-gif-19171762')
+        return
+    if message.content.lower() == 'heavy driver':
+        await message.channel.send('https://tenor.com/view/h-eavy-driver-heavy-gif-19884562')
+        return
+    if message.content.lower() == "that's illegal" or message.content.lower() == "that is illegal" or message.content.lower() == 'wti':
+        await message.channel.send('https://tenor.com/view/wait-that-thats-is-illegal-gif-18393263')
+        return
+    if message.content.lower() == 'bsdk':
+        await message.channel.send('https://tenor.com/view/bhosdi-ke-mirzapur-kaaleen-bhaiya-well-gif-17332070')
+        return
+    if message.content.lower() == 'who asked' or message.content.lower() == 'who fucking asked' or message.content.lower() == 'who tf asked':
+        await message.channel.send('https://tenor.com/view/air-force-military-jet-plane-fighter-gif-17096343')
         return
     return
 
 client.add_listener(on_message, 'on_message')
 
+
+# Invite link command
+@client.command()
+async def invite(ctx):
+    embed=discord.Embed(color = 0xffff00,title = f"Click below to add me! 🤗")
+    embed.add_field(name = "_ _", value = "[Invite](https://discord.com/api/oauth2/authorize?client_id=758950626297249812&permissions=379968&scope=bot)")
+    await ctx.send(embed = embed)
 
 # Insult command
 @client.command(aliases = ['roast'], pass_context = True)
@@ -343,78 +409,131 @@ async def ping(ctx):
 
 # COVID Command
 @client.command()
-async def covid(ctx, *state):
-    state = queryToStr(state)
-    if state == '':
-        await sendIndianCovidData(ctx = ctx)
+async def covid(ctx, *, state):
+    state = str(state).lower()
+    code = ""
+    for e in codeDict:
+        if state.startswith(e):
+            code = codeDict.get(e, "")
+            break
+    if code != "":
+        await sendStateCovidData(ctx = ctx, code = code)
     else:
-        code = ""
-        for e in codeDict:
-            if state.startswith(e):
-                code = codeDict.get(e, "")
-                break
-        if code != "":
-            await sendStateCovidData(ctx = ctx, code = code)
-        else:
-            await ctx.message.add_reaction('❎')
-            await ctx.send("Incorrect state name, please try again.")
+        await ctx.message.add_reaction('❎')
+        await ctx.send("Incorrect state name, please try again.")
+
+@covid.error
+async def covid_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await sendIndianCovidData(ctx = ctx)
 
 
 # UD Definition Command
 @client.command(aliases = ['def', 'df', 'ud', 'urban'], pass_context = True)
-async def define(ctx, *Query):
+async def define(ctx, *, query):
     if(random.randint(0,10) == 6):
         await ctx.message.add_reaction('😝') 
         await ctx.send('https://tenor.com/view/golmaal3-johnny-lever-pappi-bhai-mai-nahi-bataunga-mein-nahi-bataunga-gif-17855218')
         return
-    word = queryToUrlStr(Query)
-    if word == '':
-        await ctx.message.add_reaction('⁉')
-        await ctx.send("I need a damn word to look up, how bout you try again?")
-        return 
+    word = str(query)
     try:
-        connectionDef.request("GET", "/define?term=" + word, headers=headers) 
-        response = connectionDef.getresponse()
-        data = response.read()
-        data = json.loads(data.decode("utf-8"))
+        querystring = {"term": word}
+        response = requests.request("GET", defineURL, headers=defineHeaders, params=querystring)
+        data = response.json()
         first = data['list'][0]
 
+        count = ""
+        if(len(data['list'])-1 > 1):
+            count = str(len(data['list']) - 1)
+        else:
+            count = 'no'
         await ctx.message.add_reaction('✅')
-        await ctx.send('**Definition for - **' + first['definition'])
+        await ctx.send('**Definition - **' + first['definition'])
         await ctx.send('**Example - **_' + first['example'] + "_")
-        await ctx.send('**' + str(first['thumbs_up']) + "** people have liked this shit.")
-        if(len(data['list'])-1 > 0):
-            await ctx.send("There were **" + str(len(data['list']) - 1) + "** other definition(s), go look 'em up yourself!")
-    except:
+        await ctx.send("(<" + first['permalink'] + ">) There are " + count + " other definitions.")
+    except Exception as e:
         await ctx.message.add_reaction('❎')
         await ctx.send("Either there is no definition for the word, or some error occurred. Anyway, I couldn't care less ¯\_(ツ)_/¯")
+        print(e)
+
+@define.error
+async def define_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.message.add_reaction('⁉')
+        await ctx.send("I need a damn word to look up, how bout you try again?")
 
 
 # Avatar Command
 @client.command(aliases = ['av', 'a'], pass_context = True)
-async def avatar(ctx, member: discord.Member = None):
-    
-    if(member == None):
+async def avatar(ctx, member: discord.Member):
+    try:
+        await ctx.message.add_reaction('👀')
+        embed = discord.Embed(title="👀",description=f"Here is {member.mention}'s avatar, ya damn stalker", colour=discord.Colour(0xffff00))
+        embed.set_image(url = member.avatar_url)
+    except:
+        await ctx.message.add_reaction('🤬')
+        embed = discord.Embed(title="🤬",description=f"Dumb fookin error occurred!", colour=discord.Colour(0xffff00))
+    embed.set_footer(text=f"Requested by {ctx.message.author.name} | {client.user.name}", icon_url=client.user.avatar_url)
+    await ctx.send(embed = embed)
+
+@avatar.error
+async def avatar_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
         await ctx.message.add_reaction('🤦‍♂️')
         embed = discord.Embed(title="🤦‍♂️",description=f"Uh, okay, look at yourself, you narcissistic human.", colour=discord.Colour(0xffff00))
         embed.set_image(url=ctx.message.author.avatar_url)
-    else:
-        try:
-            await ctx.message.add_reaction('👀')
-            embed = discord.Embed(title="👀",description=f"Here is {member.mention}'s avatar, ya damn stalker", colour=discord.Colour(0xffff00))
-            embed.set_image(url = member.avatar_url)
-        except:
-            await ctx.message.add_reaction('🤬')
-            embed = discord.Embed(title="🤬",description=f"Dumb fookin error occurred!", colour=discord.Colour(0xffff00))
-    embed.set_footer(text=f"Requested by {ctx.message.author.name} | {client.user.name}", icon_url=client.user.avatar_url)
-    await ctx.send(embed = embed)
+        embed.set_footer(text=f"Requested by {ctx.message.author.name} | {client.user.name}", icon_url=client.user.avatar_url)
+        await ctx.send(embed = embed)
+    
+    if isinstance(error, commands.BadArgument):
+        await ctx.message.add_reaction('🤬')
+        await ctx.send("Mention a real user next time, okay? Good.")
 
 
 # Chuck Norris Command
 @client.command(aliases = ['norris', 'cn', 'chuck'], pass_context = True)
-async def chucknorris(ctx, *Query):
-    query  = queryToStr(Query)
-    if query  == '':
+async def chucknorris(ctx, *, text):
+    text = str(text)
+    try:
+        response = requests.get(chuckURL+"/categories")
+        categories = response.json()
+    except:
+        await ctx.message.add_reaction('😭')
+        await ctx.send("Welp, an error occurred, try again or go cry to your mommy.")
+        return
+        
+    if text == 'categories':
+        string = ""
+        for ele in categories:
+            string = string + ele.upper() + '\n'
+        embed = discord.Embed(title = f"**Chuck Norris Facts Categories**", description = f"**Available categories:** \n {string}", color = 0xffff00)
+        await ctx.message.add_reaction('✅')
+        await ctx.send(embed = embed)
+
+    elif text in categories:
+        if text == 'explicit' and ctx.message.channel.nsfw==False:
+            await ctx.message.add_reaction('⁉')
+            await ctx.send("Wait a minute, this ain't a NSFW channel! Feck off!")
+        else:
+            try: 
+                response = requests.get(chuckURL+"/random?category="+text)
+                data = response.json()
+            except:
+                await ctx.message.add_reaction('😭')
+                await ctx.send("Welp, an error occurred, try again or go cry to your mommy.")
+                return
+            embed = discord.Embed(title = f"**Chuck Norris Fact**", description = f"**{text.upper()}** : {data['value']}", color = 0xffff00)
+            embed.set_thumbnail(url = data['icon_url'])
+            embed.set_footer(text=f"Totally legitmate, 100% true and trustworthy, completely reliable and truthful. Don't @ me though, I am a bot, won't respond anyway.")
+            await ctx.message.add_reaction('✅')
+            await ctx.send(embed = embed)
+    else:
+        await ctx.message.add_reaction('⁉')
+        await ctx.send("I literally have a command to check the available categories, still you send dumb shit to me!")
+
+@chucknorris.error
+async def chucknorris_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
         try:
             response = requests.get(chuckURL+"/random")
             data = response.json()
@@ -424,63 +543,22 @@ async def chucknorris(ctx, *Query):
             embed.set_thumbnail(url = data['icon_url'])
             embed.set_footer(text=f"Totally legitmate, 100% true and trustworthy, completely reliable and truthful. Don't @ me though, I am a bot, won't respond anyway.")
             await ctx.send(embed = embed)
-
         except:
             await ctx.message.add_reaction('😭')
             await ctx.send("Welp, an error occurred, try again or go cry to your mommy.")
-    else:
-        try:
-            response = requests.get(chuckURL+"/categories")
-            categories = response.json()
-        except:
-            await ctx.message.add_reaction('😭')
-            await ctx.send("Welp, an error occurred, try again or go cry to your mommy.")
-            return
-        
-        if query == 'categories':
-            await ctx.message.add_reaction('✅')
-            
-            string = ""
-            for ele in categories:
-                string = string + ele.upper() + '\n'
-            embed = discord.Embed(title = f"**Chuck Norris Facts Categories**", description = f"**Available categories:** \n {string}", color = 0xffff00)
-            await ctx.send(embed = embed)
-
-        elif query in categories:
-            if query == 'explicit' and ctx.message.channel.nsfw==False:
-                await ctx.message.add_reaction('⁉')
-                await ctx.send("Wait a minute, this ain't a NSFW channel! Feck off!")
-    
-            else:
-                response = requests.get(chuckURL+"/random?category="+query)
-                data = response.json()
-                await ctx.message.add_reaction('✅')
-
-                embed = discord.Embed(title = f"**Chuck Norris Fact**", description = f"**{query.upper()}** : {data['value']}", color = 0xffff00)
-                embed.set_thumbnail(url = data['icon_url'])
-                embed.set_footer(text=f"Totally legitmate, 100% true and trustworthy, completely reliable and truthful. Don't @ me though, I am a bot, won't respond anyway.")
-                await ctx.send(embed = embed)
-
-        else:
-            await ctx.message.add_reaction('⁉')
-            await ctx.send("I literally have a command to check the available categories, still you send dumb shit to me!")
 
 
 # Weather Command
 @client.command(aliases = ['w', 'mausam'], pass_context = True) 
-async def weather(ctx, *Query):
-    query = queryToStr(Query)
-    if(query == ""):
-        await ctx.message.add_reaction('🤬')
-        await ctx.send("Umm, share a location too next time, thanks.")
-        return
+async def weather(ctx, *, query):
+    query = str(query)
     location = geolocator.geocode(query)
     if(location == None):
-        await ctx.message.add_reaction('🤬')
+        await ctx.message.add_reaction('❎')
         await ctx.send("Could not find the location you mentioned, learn some Geography I guess.")
         return
     try:
-        response = requests.get(oWeatherURL + '?lat=' + str(location.latitude) + '&lon=' + str(location.longitude) + '&appid=yo-key&units=metric&exclude=minutely,hourly,alerts,daily')
+        response = requests.get(oWeatherURL + '?lat=' + str(location.latitude) + '&lon=' + str(location.longitude) + '&appid=91a0032190edae32d8f0443c4f96b0ac&units=metric&exclude=minutely,hourly,alerts,daily')
     except:
         await ctx.message.add_reaction('😭')
         await ctx.send("Error occurred at the API's end.")
@@ -497,5 +575,156 @@ async def weather(ctx, *Query):
     embed.set_footer(text = f"Weather by OpenWeather | {client.user.name}", icon_url = client.user.avatar_url)
     await ctx.message.add_reaction('✅')
     await ctx.send(embed = embed)
+
+@weather.error
+async def weather_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.message.add_reaction('🤬')
+        await ctx.send("Umm, share a location too next time, thanks.")
+
+
+# Yoda Command
+@client.command(aliases = ['yodish'], pass_context = True)
+async def yoda(ctx, *, text):
+    text = str(text)
+    try:
+        yodaURL = "http://yoda-api.appspot.com/api/v1/yodish?text="
+        response = requests.get(yodaURL+text)
+        data = response.json()
+    except:
+        await ctx.send("Failed by the API, I have been.")
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data["yodish"])
+
+@yoda.error
+async def yoda_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.message.add_reaction('❎')
+        await ctx.send("Text to translate, I need.")
+
+
+# Animal Commands
+animalURL = "http://shibe.online/api/"
+@client.command(aliases = ['pussy', 'meow'], pass_context = True)
+async def cat(ctx):
+    try:
+        response = requests.request("GET", animalURL + "cats")
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data[0])
+
+@client.command(aliases = ['birb'], pass_context = True)
+async def bird(ctx):
+    try:
+        response = requests.request("GET", animalURL + "birds")
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data[0])
+
+@client.command()
+async def shibe(ctx):
+    try:
+        response = requests.request("GET", animalURL + "shibes")
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data[0])
+
+dogURL = "https://dog.ceo/api/breeds/image/random"
+
+@client.command(aliases = ['doggo', 'woof'], pass_context = True)
+async def dog(ctx):
+    try:
+        response = requests.request("GET", dogURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['message'])
+
+foxURL = "https://randomfox.ca/floof/"
+
+@client.command()
+async def fox(ctx):
+    try:
+        response = requests.request("GET", foxURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['image'])
+
+duckURL = "https://random-d.uk/api/random"
+
+@client.command(aliases = ['quack'], pass_context = True)
+async def duck(ctx):
+    try:
+        response = requests.request("GET", duckURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['url'])
+
+bunnyURL = "https://api.bunnies.io/v2/loop/random/?media=gif,png"
+
+@client.command()
+async def bunny(ctx):
+    try:
+        response = requests.request("GET", bunnyURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['media']['gif'])
+
+lizardURL = "https://nekos.life/api/v2/img/lizard"
+
+@client.command()
+async def lizard(ctx):
+    try:
+        response = requests.request("GET", lizardURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['url'])
+
+owlURL = "http://pics.floofybot.moe/owl"
+
+@client.command()
+async def owl(ctx):
+    try:
+        response = requests.request("GET", owlURL)
+        data = response.json()
+    except:
+        await ctx.message.add_reaction('😫')
+        await ctx.send('The API failed me!')
+        return
+    await ctx.message.add_reaction('✅')
+    await ctx.send(data['image'])
+
 
 client.run('bot-key')

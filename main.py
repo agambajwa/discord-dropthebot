@@ -101,12 +101,12 @@ dadJokesHeaders = {
     'Accept' : 'application/json'
     }
 imageHeaders = {
-    'x-rapidapi-key': "6d6af719b4msh4fb65e93729fcccp16a377jsn174a6299b549",
-    'x-rapidapi-host': "contextualwebsearch-websearch-v1.p.rapidapi.com"
+    'x-rapidapi-key': "",
+    'x-rapidapi-host': ""
     }
 defineHeaders = {
-    'x-rapidapi-key': "6d6af719b4msh4fb65e93729fcccp16a377jsn174a6299b549",
-    'x-rapidapi-host': "mashape-community-urban-dictionary.p.rapidapi.com"
+    'x-rapidapi-key': "",
+    'x-rapidapi-host': ""
     }
 
 client.remove_command('help')
@@ -810,7 +810,7 @@ async def weather(ctx, *, query):
         await ctx.send("Could not find the location you mentioned, learn some Geography I guess.")
         return
     try:
-        response = requests.get(oWeatherURL + '?lat=' + str(location.latitude) + '&lon=' + str(location.longitude) + '&appid=91a0032190edae32d8f0443c4f96b0ac&units=metric&exclude=minutely,hourly,alerts,daily')
+        response = requests.get(oWeatherURL + '?lat=' + str(location.latitude) + '&lon=' + str(location.longitude) + '&appid=xxxx&units=metric&exclude=minutely,hourly,alerts,daily')
     except:
         await ctx.message.add_reaction('😭')
         await ctx.send("Error occurred at the API's end.")
